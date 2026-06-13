@@ -1,173 +1,325 @@
 <div align="center">
   <br/>
-  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
-  <img src="https://img.shields.io/badge/OSINT-Platform-purple.svg" alt="OSINT">
-  <br/><br/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/TRINETRA-v1.0.0-8b5cf6?style=for-the-badge&logo=appveyor&labelColor=0b0f1a">
+    <img src="https://img.shields.io/badge/TRINETRA-v1.0.0-8b5cf6?style=for-the-badge&logo=appveyor&labelColor=0b0f1a" alt="TRINETRA">
+  </picture>
+  <br/>
+  <h3>India-Focused OSINT Intelligence Dashboard</h3>
+  <p>
+    <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+"/>
+    <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React 18"/>
+    <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"/>
+    <img src="https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+    <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker Compose"/>
+    <img src="https://img.shields.io/badge/TypeScript-5.6-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 5.6"/>
+    <img src="https://img.shields.io/badge/Leaflet-1.9-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet 1.9"/>
+    <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"/>
+    <img src="https://img.shields.io/badge/tests-138%20passed-brightgreen?style=flat-square" alt="138 Tests Passing"/>
+  </p>
+  <br/>
 </div>
 
-# 🛡️ TRINETRA — OSINT Intelligence Dashboard
+> **Search any domain, IP, email, phone, or name — get 360° threat intelligence in seconds.**
+>
+> TRINETRA is an all-in-one OSINT platform built for India. It combines 19 parallel OSINT plugins, a live threat feed powered by real malicious IP data, and an automated watch monitoring system — all wrapped in a dark-themed interactive map dashboard.
 
-> **An all-in-one Open Source Intelligence (OSINT) Dashboard built for India.**  
-> Search any domain, IP, email, phone number, or name — get comprehensive threat intelligence in seconds.
+<br/>
 
----
+<p align="center">
+  <b>🔍 OSINT Search</b>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <b>🗺️ Live Threat Map</b>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <b>📡 Real-Time Feed</b>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <b>👁️ Watch Monitoring</b>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <b>📊 Professional Reports</b>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <b>🧠 Relationship Graphs</b>
+</p>
 
-## 📋 Table of Contents
-
-- [How It Works](#-how-it-works)
-- [How It Helps](#-how-it-helps)
-- [Features](#-features)
-- [Setup Guide](#-setup-guide)
-- [Usage Guide](#-usage-guide)
-- [Architecture](#-architecture)
-- [Tech Stack](#-tech-stack)
-- [API Endpoints](#-api-endpoints)
-- [Project Structure](#-project-structure)
-- [Running Tests](#-running-tests)
+<br/>
 
 ---
 
-## ⚙️ How It Works
+## 📸 Dashboard Preview
 
-TRINETRA operates as a **unified OSINT intelligence platform** with three independent but complementary systems running simultaneously:
+<p align="center">
+  <i>🚀 The dashboard features an interactive India threat map, live attack vectors from real threat intelligence feeds, city risk analysis, and comprehensive search results — all in one unified dark-themed interface.</i>
+</p>
 
-### 1. 🔍 On-Demand OSINT Search
+<br/>
 
-When you search a target (domain, IP, email, phone, or name):
+---
+
+## ⚡ Quick Start
+
+```bash
+# 1. Clone and enter
+git clone https://github.com/K921-cyber/trinetra.git
+cd trinetra
+
+# 2. Environment setup
+cp .env.example .env
+# ⚠️ Edit .env with your API keys (optional — most features work without keys)
+
+# 3. Launch everything
+docker compose up --build -d
+```
+
+Open **http://localhost:3000** — that's it.
+
+> **Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/Mac) or Docker Engine (Linux)
+
+<br/>
+
+---
+
+## 🎯 What TRINETRA Does
+
+### The Problem
+
+Investigating a single domain typically means juggling **9+ separate tools**:
+
+| Task | Tool | Time |
+|------|------|------|
+| WHOIS lookup | Separate website | ~2 min |
+| DNS records | Another site | ~2 min |
+| Port scan | nmap / Shodan | ~5 min |
+| SSL check | Yet another tool | ~1 min |
+| Subdomain discovery | crt.sh | ~2 min |
+| Data breach check | Have I Been Pwned | ~1 min |
+| CVE lookup | NVD | ~2 min |
+| Tech fingerprint | Wappalyzer | ~1 min |
+| Geo-location | ip-api.com | ~1 min |
+
+**Total: 15–30 minutes** of context switching between tabs.
+
+### TRINETRA's Solution
 
 ```
-User Query ──→ Auto-Detect Type ──→ 19 Parallel Plugins ──→ Results Stream Back
-                      │                      │
-                 domain / IP /          Infrastructure   (9 plugins)
-                 email / phone         Threat Intel      (3 plugins)
-                 / name                Person Recon      (3 plugins)
-                                        Advanced Scan     (4 plugins)
+┌─────────────────────────────────────────────────────────────┐
+│                    One Search. 19 Plugins.                   │
+│                    Results in 10–15 seconds.                 │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-- **Auto-detection** identifies the target type instantly
-- **All matching plugins run in parallel** (asyncio.gather) — results in 5–18 seconds
-- **Real-time streaming** via WebSocket shows each result as it completes
-- **19 specialized OSINT plugins** each query live, free data sources (WHOIS, DNS, NVD, crt.sh, Have I Been Pwned, etc.)
+**Three independent systems running simultaneously:**
 
-### 2. 📡 Live Threat Feed (Continuous Background Loop)
+#### 🔍 1. On-Demand OSINT Search
+```
+  Target Query ──→ Auto-Detect Type ──→ 19 Parallel Plugins ──→ Results Stream Live
+                      │
+                 domain / IP /
+                 email / phone / name
+```
+- Auto-detects the target type (domain, IP, email, phone, or name)
+- Fires all matching OSINT plugins in parallel via `asyncio.gather`
+- Streams results back via WebSocket as each plugin completes
+- Results in 10–15 seconds for a full deep-dive
 
-Independent of user searches, a background system runs every 10 minutes:
-
+#### 📡 2. Live Threat Feed (Background Loop)
 ```
 ThreatFox ──┐
-Feodo     ──┼──→ Fetch malicious IPs ──→ Geo-locate (ip-api.com) ──→ Build Attack Vectors
-IPsum    ───┘                                                     │
-                                                                   ▼
-RSS News ──→ The Hacker News, BleepingComputer, Krebs, Record ──→ Broadcast via WebSocket
-                                                                   │
-                                                                   ▼
-                                                    India Map updates every 8-12 seconds
+Feodo     ──┼──→ Fetch Real Malicious IPs ──→ Geo-locate ──→ Animate on Map
+IPsum    ───┘                              Every 8-12 seconds
+                                            
+RSS Feeds ──→ The Hacker News / BleepingComputer / Krebs / Record
 ```
+- Fetches real malicious IPs from Abuse.ch ThreatFox, Feodo Tracker, and IPsum
+- Geo-locates them via ip-api.com (free tier)
+- Animates attack vectors on the India map with origin intelligence
+- Streams live cyber news headlines alongside attack data
+- **No API key required** — all sources are free and public
 
-- **Real IPs** from Abuse.ch ThreatFox, Feodo Tracker, and IPsum blacklists
-- **Real geo-location** via ip-api.com (free tier)
-- **Attack types and malware names** from actual feed metadata
-- **Target cities** are statistically assigned based on NCRB crime data (we know the attack source, not the real destination)
-
-### 3. 👁️ Watch & Monitoring (Periodic Background Checks)
-
+#### 👁️ 3. Watch Monitoring (Background Checks)
 ```
-Scheduler (every 60s) ──→ Check due watches ──→ Run plugins ──→ Compare with previous scan
-                                                                       │
-                                                                  Changes detected?
-                                                                  ├── Yes → Create Alert
-                                                                  └── No  → Skip
+Scheduler ──→ Check Due Watches ──→ Run Plugins ──→ Compare with Previous Scan
+                                                         │
+                                                    Change detected?
+                                                    ├── Yes → Alert created
+                                                    └── No  → Skip
 ```
-
 - Configure targets to be re-scanned at intervals from 5 minutes to 7 days
-- Automatic change detection creates alerts when results differ
-- Alerts are stored and viewable in the dashboard
+- Automatic change detection — get alerted when results differ
+- Select which specific plugins run for each watch
 
----
-
-## 🎯 How It Helps
-
-### The Problem It Solves
-
-Investigating a single domain traditionally requires switching between **9+ different tools**:
-
-1. WHOIS lookup site → registrar info
-2. DNS checker → A, MX, NS records
-3. nmap → port scan
-4. SSL checker → certificate validity
-5. crt.sh → subdomains
-6. Have I Been Pwned → data leaks
-7. NVD → CVEs
-8. The Hacker News → recent threats
-9. ip-api.com → server location
-
-**That's 15–30 minutes of manual work.** TRINETRA does it all in **one search — 10–15 seconds.**
-
-### Who It Helps
-
-| User | Benefit |
-|------|---------|
-| **Security Researchers** | Rapid threat intelligence gathering — investigate domains, IPs, emails in seconds instead of minutes |
-| **CERT / SOC Teams** | Continuous monitoring of critical infrastructure via Watch system with change alerts |
-| **Threat Intel Analysts** | Live threat feed showing real malicious IPs targeting India with origin intelligence |
-| **Penetration Testers** | Automated recon — subdomains, ports, tech fingerprint, SSL health in one place |
-| **Cybersecurity Students** | Learn OSINT techniques with real data and an interactive India-focused map |
-
-### Key Differentiators
-
-| Problem | TRINETRA's Solution |
-|---------|-------------------|
-| Global OSINT tools ignore India-specific data | Built-in NCRB 2022 cyber crime data + 70+ curated India-specific breaches (Aadhaar, IRCTC, CoWIN, etc.) |
-| No unified dashboard — 19 separate tools is slow | One search triggers all 19 plugins in parallel — results stream in real-time |
-| Simulated/placeholder data when APIs fail | Every plugin returns real data from live sources (WHOIS, DNS, NVD, threat feeds) |
-| Global maps miss India context | India-focused map with state crime overlay, city risk markers, animated attack vectors |
-| Manual re-checking wastes hours | Watch system auto-re-scans targets at configurable intervals and alerts on changes |
+<br/>
 
 ---
 
 ## ✨ Features
 
 ### 🔍 OSINT Search (19 Plugins)
-- **One-click intelligence** — Search any domain, IP, email, phone, or name
-- **Parallel execution** — All relevant plugins run simultaneously
-- **Real-time streaming** — Results appear as each plugin completes
-- **Auto-detect** — Automatically identifies the target type
 
-### 🗺️ Interactive India Map
-- **Animated attack vectors** — Lines showing real threats from 25+ countries targeting Indian cities
-- **City risk markers** — Color-coded circles based on NCRB crime statistics
-- **Crime heatmap overlay** — Toggleable state-wise NCRB 2022 cyber crime data
-- **Origin intelligence** — Live summary of attacking countries and attack types
-- **Threat Intelligence panel** — Severity distribution, origin breakdown, and detailed attack routes table
-- **Live attack counter** — Real-time "LIVE" badge with critical/medium breakdown
+| Category | Plugins | What They Find |
+|----------|---------|----------------|
+| **Infrastructure** | WHOIS, DNS Lookup, Port Scanner, SSL Health, Subdomain Finder, Reverse DNS, Name Servers, HTTP Headers, Tech Fingerprint | Registrar info, A/MX/NS records, open ports, certificate validity, subdomains, tech stack |
+| **Threat Intel** | CVE Alerts, Data Leaks, Document Vault | Known vulnerabilities (NVD), breach data (LeakIX, XposedOrNot, LeakCheck), document metadata |
+| **Person Recon** | Email Finder, Phone Intel, Username Tracker | Email reputation (EmailRep.io, Gravatar, 20+ platforms), phone number intel, social media presence |
+| **Advanced** | Deep Search, Surface Scan, Social Radar, Live Feed | Web intelligence, surface web recon, social media footprint, real-time indicators |
+
+**Every plugin queries live, free data sources** — no simulated or placeholder results.
+
+### 🗺️ Interactive India Threat Map
+
+- **Animated attack vectors** — Dashed lines with traveling dots from 25+ origin countries to Indian cities
+- **City risk markers** — Color-coded circles (green/yellow/red) based on NCRB 2022 cyber crime statistics
+- **Crime heatmap overlay** — State-wise NCRB cyber crime data with hover tooltips and click popups
+- **Destination threat pins** — Aggregated attack destination markers showing live vector count, origin countries, attack types, and feed sources
+- **Threat Intelligence panel** — Severity distribution bars, origin intelligence summary (flags + counts), detailed attack routes table
+- **Live attack counter** — Real-time badge with critical/medium breakdown and LIVE indicator
+- **Data Sources Health panel** — Live status of ThreatFox, Feodo, IPsum, ip-api.com, RSS feeds
+
+### 📡 Real-Time Threat Feed
+
+- **Live events timeline** — Filterable by All, Attacks, Events, or News
+- **Attack vector cards** — Color-coded by severity with origin→target route, type, and timestamp
+- **Cyber news** — Latest headlines from The Hacker News, BleepingComputer, KrebsOnSecurity, The Record
+- **Vector detail modal** — Full intelligence with copy IP, ISP, organization, AbuseIPDB/AlienVault/CERT-In report actions
 
 ### 📊 Professional Report View
-- **GUI / Terminal / Split views** — Three viewing modes for plugin findings
-- **Export options** — Copy to clipboard, download as .txt, print as PDF
-- **Search within results** — Filter findings in real-time
+
+- **Three view modes** — GUI (structured table), Terminal (raw output), Split (both side-by-side)
+- **Export options** — Copy to clipboard, download as `.txt`, print/save as PDF
+- **Full system report** — Executive summary, threat landscape, watches & alerts, intelligence events, recent scans
 
 ### 🧠 Relationship Graph
-- **Dynamic Cytoscape visualization** — Auto-generated graph connecting search results
-- **Color-coded nodes** — Infrastructure, Threat, Person, Advanced categories
-- **Export to PNG** — Save graphs for reports
+
+- **Dynamic Cytoscape visualization** — Auto-generated graph connecting search results by relationships
+- **Color-coded node types** — Infrastructure (blue), Threat (red), Person (purple), Advanced (orange)
+- **Export to PNG** — Save graphs at 2x resolution for reports
 
 ### 👁️ Watch & Monitoring
-- **Automated re-scanning** — Monitor targets at configurable intervals (5 min to 7 days)
-- **Change detection** — Automatically alerts on differences
-- **Alert history** — Review all past changes with summaries
-- **Plugin selection** — Choose which plugins run for each watch
 
-### 📡 Live Threat Feed
-- **Real-time events** — Attack vectors and news stream via WebSocket
-- **Cyber news** — Latest headlines from The Hacker News, BleepingComputer, KrebsOnSecurity, The Record
-- **Filterable timeline** — Filter by Attacks, Events, or News
-- **Expandable details** — Click any attack for full intelligence with report actions
+- **Automated re-scanning** — Every 5 minutes to 7 days
+- **Smart change detection** — Compares `gui_data` across scans, generates human-readable diffs
+- **Alert history** — Full timeline of changes per watch target
+- **Plugin-level control** — Select exactly which plugins to run per watch
 
-### 🛡️ Data Sources Health Panel
-- **Live status** — Health of ThreatFox, Feodo, IPsum, ip-api.com, RSS feeds
-- **Metrics** — IP counts, geo-lookups, last fetch times
-- **Error reporting** — See exactly which source is failing and why
+### 🛡️ India-Specific Intelligence
+
+- **NCRB 2022 cyber crime data** embedded for all 23 states/UTs
+- **70+ curated India-specific data breaches** (Aadhaar, IRCTC, BigBasket, CoWIN, etc.)
+- **India-focused map** with state boundaries, city markers, crime heatmap
+- **Target city modeling** — Attack destinations statistically assigned from NCRB data
+
+<br/>
+
+---
+
+## 🏗️ Architecture
+
+```
+                    ┌──────────────────────────────────────┐
+                    │   User's Browser (port 3000)          │
+                    │   React 18 + TypeScript + Vite        │
+                    │   Leaflet Map + Cytoscape Graphs      │
+                    └──────────────┬──────────┬─────────────┘
+                                  HTTP       WebSocket
+                                    │            │
+                    ┌───────────────▼────────────▼─────────────┐
+                    │           nginx (port 3000)               │
+                    │   Serves static build /api/* → backend   │
+                    │              /ws/* → backend             │
+                    └──────────────────────┬───────────────────┘
+                                           │
+                    ┌──────────────────────▼───────────────────┐
+                    │    FastAPI Backend (port 8000)            │
+                    │                                          │
+                    │  ┌──────────┐  ┌──────────────────────┐  │
+                    │  │ REST API │  │  WebSocket Streaming  │  │
+                    │  │ /search  │  │  /ws/search           │  │
+                    │  │ /watch   │  │  /ws/threat-feed      │  │
+                    │  │ /plugins │  └──────────────────────┘  │
+                    │  └────┬─────┘                            │
+                    │        │                                 │
+                    │  ┌────▼─────────────────────────────┐    │
+                    │  │    Plugin Orchestrator            │    │
+                    │  │   ┌──────────┐ ┌──────────┐      │    │
+                    │  │   │ 19 OSINT │ │ Thread   │      │    │
+                    │  │   │ Plugins  │ │ Scheduler│      │    │
+                    │  │   └──────────┘ └──────────┘      │    │
+                    │  └──────────────────────────────────┘    │
+                    │                                          │
+                    │  ┌──────────────────────┐  ┌──────────┐ │
+                    │  │ Threat Feed Service  │  │ TaskIQ   │ │
+                    │  │ (background loop)    │  │ Worker   │ │
+                    │  └──────────────────────┘  └──────────┘ │
+                    └────────────┬────────┬────────┬──────────┘
+                                │        │        │
+                    ┌───────────▼──┐ ┌───▼───┐ ┌─▼──────────┐
+                    │  PostgreSQL  │ │ Redis │ │  External   │
+                    │  (watches,   │ │(cache)│ │  APIs &     │
+                    │   alerts)    │ │       │ │  Feeds      │
+                    └──────────────┘ └───────┘ └─────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | React 18 + TypeScript + Vite | UI — map, reports, graphs |
+| **Mapping** | Leaflet + react-leaflet | India threat map with animations |
+| **Graphs** | Cytoscape + cytoscape-dagre | Relationship visualization |
+| **Backend** | FastAPI + Python 3.11 | REST API + WebSocket server |
+| **Database** | PostgreSQL 15 / SQLite | Persistent storage (watches, alerts) |
+| **Cache** | Redis | Task queue + caching |
+| **Worker** | TaskIQ | Background watch execution |
+| **Data** | httpx + aiohttp + feedparser | External API calls + RSS parsing |
+| **Container** | Docker + Docker Compose | Deployment |
+
+<br/>
+
+---
+
+## 📡 Real Data Sources
+
+All data in TRINETRA is **real** — no simulated or placeholder data.
+
+### Threat Intelligence Feeds
+| Source | Type | Data Provided | Key Required? |
+|--------|------|---------------|---------------|
+| [Abuse.ch ThreatFox](https://threatfox.abuse.ch/) | Malware IOCs | Malicious IPs, malware families, attack types | ❌ Free |
+| [Feodo Tracker](https://feodotracker.abuse.ch/) | C2 Tracker | C2 server IPs, botnet malware (Dridex, Emotet, QakBot) | ❌ Free |
+| [IPsum](https://github.com/stamparm/ipsum) | IP Blacklist | Blacklisted IPs with detection scores | ❌ Free |
+| [ip-api.com](https://ip-api.com/) | Geo-location | Country, city, lat/lon, ISP, org (free: 45 req/min) | ❌ Free |
+
+### OSINT Plugins (19 total)
+| Plugin | Source | Key Required? |
+|--------|--------|---------------|
+| WHOIS Lookup | whois servers (direct) | ❌ Free |
+| DNS Records | dnspython (direct) | ❌ Free |
+| Port Scanner | Built-in TCP scanner | ❌ Free |
+| SSL Health | OpenSSL / direct | ❌ Free |
+| Subdomain Finder | crt.sh | ❌ Free |
+| Reverse DNS | dnspython | ❌ Free |
+| Name Servers | dnspython | ❌ Free |
+| HTTP Headers | httpx | ❌ Free |
+| Tech Fingerprint | Wappalyzer (regex-based) | ❌ Free |
+| CVE Alerts | NVD API | ❌ Free |
+| Data Leaks | LeakIX, XposedOrNot, LeakCheck | ❌ Free |
+| Document Vault | Direct checks | ❌ Free |
+| Email Finder | EmailRep.io | ❌ Free |
+| Phone Intel | phonenumbers library | ❌ Free |
+| Username Tracker | Social platform HEAD requests | ❌ Free |
+| Deep Search | DuckDuckGo + Bing | ❌ Free |
+| Surface Scan | Built-in crawler | ❌ Free |
+| Social Radar | Social media HEAD checks | ❌ Free |
+| Live Feed | RSS (THN, BleepingComputer, Krebs, Record) | ❌ Free |
+
+### RSS News Feeds
+| Feed | Topic |
+|------|-------|
+| [The Hacker News](https://thehackernews.com/) | General cybersecurity |
+| [BleepingComputer](https://www.bleepingcomputer.com/) | Tech news + malware |
+| [KrebsOnSecurity](https://krebsonsecurity.com/) | In-depth security reporting |
+| [The Record](https://therecord.media/) | Cyber crime + policy |
+
+### India-Specific Data
+| Source | Description |
+|--------|-------------|
+| **NCRB 2022** | Cyber crime statistics for 23 Indian states/UTs | 
+| **Local Breach DB** | 70+ curated India-specific breaches (Aadhaar, IRCTC, BigBasket, CoWIN, etc.) |
+
+<br/>
 
 ---
 
@@ -177,13 +329,224 @@ Investigating a single domain traditionally requires switching between **9+ diff
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/Mac) or Docker Engine (Linux)
 - [Git](https://git-scm.com/)
 
-### Quick Setup (2 Minutes)
+### Quick Start (2 Minutes)
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/K921-cyber/trinetra.git
 cd trinetra
 
-# 2. Configure environment
+# 2. Configure environment variables
 cp .env.example .env
-# Edit .env
+
+# 3. Launch the full stack
+docker compose up --build -d
+```
+
+### Access the Dashboard
+
+| Service | URL |
+|---------|-----|
+| **Dashboard** | [http://localhost:3000](http://localhost:3000) |
+| **API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) |
+| **Health Check** | [http://localhost:8000/health](http://localhost:8000/health) |
+
+### Common Commands
+
+```bash
+docker compose up -d                 # Start all services
+docker compose up --build -d         # Rebuild and start
+docker compose down                  # Stop all services
+docker compose down -v               # Stop and clear volumes
+docker compose logs -f backend       # Watch backend logs
+docker compose logs -f frontend      # Watch frontend logs
+docker compose ps                    # Check container health
+```
+
+### Configuration (.env)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APP_NAME` | TRINETRA | Application name |
+| `DEBUG` | `true` | Enable debug mode |
+| `DATABASE_URL` | SQLite (dev) / PostgreSQL (Docker) | Database connection |
+| `REDIS_URL` | `redis://redis:6379` | Redis connection |
+| `API_KEY` | (empty) | Optional API key for auth |
+
+### Running Without Docker (Local Dev)
+
+```bash
+# Backend
+cd backend
+python -m venv venv && source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+<br/>
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/search` | Run OSINT scan on a target | Optional |
+| `GET` | `/api/search/{target}` | GET variant of search | Optional |
+| `GET` | `/api/detect?target=` | Auto-detect target type | Optional |
+| `GET` | `/api/plugins` | List all 19 OSINT plugins | Optional |
+| `GET` | `/api/target-intel?target=` | Web intelligence (DuckDuckGo + news) | Optional |
+| `GET` | `/api/crime-data` | NCRB 2022 cyber crime data | ❌ Public |
+| `GET` | `/api/health/sources` | Health of all data sources | ❌ Public |
+| `GET` | `/api/watches` | List all watches | Optional |
+| `POST` | `/api/watches` | Create a watch | Optional |
+| `GET` | `/api/watches/{id}` | Get watch details | Optional |
+| `DELETE` | `/api/watches/{id}` | Delete a watch | Optional |
+| `POST` | `/api/watches/{id}/toggle` | Pause/resume a watch | Optional |
+| `GET` | `/api/watches/alerts` | Recent alerts across all watches | Optional |
+| `GET` | `/api/watches/{id}/alerts` | Alerts for a specific watch | Optional |
+| `WS` | `/ws/search` | Streaming OSINT search | Optional |
+| `WS` | `/ws/threat-feed` | Live threat feed (map data) | Optional |
+| `GET` | `/health` | Backend health check | ❌ Public |
+
+<br/>
+
+---
+
+## 📊 Performance
+
+| Metric | Value |
+|--------|-------|
+| **OSINT Search (19 plugins)** | 10–15 seconds (parallel execution) |
+| **Threat feed fetch interval** | Every 10 minutes |
+| **Map animation refresh** | Every 8–12 seconds |
+| **Watch scheduler check** | Every 60 seconds |
+| **API rate limit (search)** | 10 req/min per IP |
+| **API rate limit (general)** | 60 req/min per IP |
+| **Geo-location limit** | ~40 req/min (ip-api.com free tier) |
+| **Max attack vectors stored** | 50 (rolling buffer) |
+| **Max headlines stored** | 200 (rolling buffer) |
+| **Unit tests** | **138 passing** |
+
+<br/>
+
+---
+
+## 🧪 Running Tests
+
+```bash
+cd backend
+pytest tests/ -v           # Run all 138 tests
+pytest tests/ -v --cov     # Run with coverage report
+```
+
+<br/>
+
+---
+
+## 🗂️ Project Structure
+
+```
+trinetra/
+├── backend/
+│   ├── app/
+│   │   ├── api/           # REST + WebSocket routes
+│   │   │   ├── routes.py          # Search, detect, plugins
+│   │   │   ├── websocket_routes.py # Streaming search WS
+│   │   │   ├── watch_routes.py     # Watch CRUD + alerts
+│   │   │   ├── threat_routes.py    # Live threat feed WS
+│   │   │   └── data_routes.py      # Crime data, health
+│   │   ├── core/          # Config, auth, rate limiting
+│   │   ├── models/        # Pydantic schemas
+│   │   ├── plugins/       # 19 OSINT plugins (4 categories)
+│   │   │   ├── infrastructure/  # 9 plugins
+│   │   │   ├── threat/          # 3 plugins
+│   │   │   ├── person/          # 3 plugins
+│   │   │   └── advanced/        # 4 plugins
+│   │   ├── services/      # Orchestrator, threat feed, DB
+│   │   ├── tasks/         # Watch scheduler + execution
+│   │   └── data/          # NCRB 2022 crime statistics
+│   ├── tests/             # 138 unit tests
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   │   ├── Map/           # IndiaMap, destination pins
+│   │   │   ├── SearchBar/     # Auto-detect input
+│   │   │   ├── ReportView/    # Plugin detail report
+│   │   │   ├── FullReportView/# Full system report
+│   │   │   ├── LiveFeed/      # Real-time events page
+│   │   │   ├── WatchPanel/    # Watch management
+│   │   │   ├── GraphView/     # Relationship graph
+│   │   │   ├── VectorDetailModal/ # Attack detail modal
+│   │   │   ├── Sidebar/       # Plugin status sidebar
+│   │   │   └── ...            # Stats, toast, icons, etc.
+│   │   ├── store/        # AppContext + ThreatContext
+│   │   ├── types/        # TypeScript type definitions
+│   │   ├── utils/        # API client, hooks, helpers
+│   │   └── styles.css    # Complete design system
+│   └── package.json
+├── docker-compose.yml
+├── docker-compose.override.yml
+└── README.md
+```
+
+<br/>
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+- **Report bugs** — Open an issue with reproduction steps
+- **Suggest features** — Open an issue with your idea
+- **Add plugins** — New OSINT plugins welcome! See the base class in `backend/app/plugins/base.py`
+- **Improve the map** — Better visualizations, new overlays, performance optimizations
+
+### Development Setup
+
+```bash
+# Backend (local)
+cd backend
+pip install -r requirements.txt
+pip install pytest pytest-asyncio  # For running tests
+uvicorn app.main:app --reload
+
+# Frontend (local)
+cd frontend
+npm install
+npm run dev
+```
+
+<br/>
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+<br/>
+
+---
+
+<div align="center">
+  <p>
+    <b>Built with 🛡️ for India's cybersecurity community</b>
+  </p>
+  <p>
+    <sub>TRINETRA — Open Source Intelligence for a safer digital India</sub>
+  </p>
+  <br/>
+  <p>
+    <a href="https://github.com/K921-cyber/trinetra/issues">Report Bug</a> ·
+    <a href="https://github.com/K921-cyber/trinetra/issues">Request Feature</a> ·
+    <a href="https://github.com/K921-cyber/trinetra">GitHub</a>
+  </p>
+</div>
