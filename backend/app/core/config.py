@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     # External API keys
     hibp_api_key: str = ""  # Have I Been Pwned v3 API key (set via HIBP_API_KEY env var)
 
+    # Telegram OSINT Bot
+    telegram_bot_token: str = ""  # Telegram Bot token from @BotFather
+    telegram_osint_api_url: str = ""  # OSINT Leak API base URL
+    telegram_osint_api_key: str = ""  # API key for OSINT API (sent as X-API-Key header)
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

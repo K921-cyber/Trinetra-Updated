@@ -20,6 +20,11 @@ from app.api.threat_routes import router as threat_router
 from app.api.data_routes import router as data_router
 from app.tasks.scheduler import start_scheduler, stop_scheduler
 from app.services.threat_feed import threat_feed
+from app.services.telegram_bot import TelegramBotService
+
+
+# Telegram OSINT bot instance (initialized in lifespan)
+telegram_bot: TelegramBotService | None = None
 
 
 @asynccontextmanager
@@ -37,6 +42,18 @@ async def lifespan(app: FastAPI):
     # Start threat feed generator
     await threat_feed.start()
     
+    # Start Telegram OSINT bot if token is configured
+    global telegram_bot
+    if settings.telegram_bot_token:
+        telegram_bot = TelegramBotService(
+            token=settings.telegram_bot_token,
+            api_url=settings.telegram_osint_api_url,
+            api_key=settings.telegram_osint_api_key,
+        )
+        await telegram_bot.start()
+    else:
+        logger.info("Telegram OSINT Bot: not configured (set TELEGRAM_BOT_TOKEN to enable)")
+    
     logger.info("TRINETRA initialized - %d OSINT plugins registered", plugin_registry.count)
     logger.info(
         "  Categories: Infrastructure (%d), Threat (%d), Person (%d), Advanced (%d)",
@@ -50,6 +67,8 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
+    if telegram_bot:
+        await telegram_bot.stop()
     await threat_feed.stop()
     await stop_scheduler()
     logger.info("TRINETRA shutting down...")
