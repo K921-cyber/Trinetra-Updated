@@ -10,7 +10,7 @@ export interface SearchResult {
 
 // ==================== Tool/Plugin Types ====================
 
-export type ToolCategory = 'infrastructure' | 'threat' | 'person' | 'advanced';
+export type ToolCategory = 'infrastructure' | 'threat' | 'advanced';
 export type ViewMode = 'gui' | 'terminal' | 'split';
 export type RiskLevel = 'safe' | 'medium' | 'critical';
 export type Freshness = 'moments' | 'minutes' | 'hours' | 'days' | 'weeks';
@@ -76,7 +76,7 @@ export interface CrimeDataPoint {
 
 // ==================== Graph Types ====================
 
-export type GraphNodeType = 'target' | 'ip' | 'dns' | 'geo' | 'port' | 'cve' | 'email' | 'domain' | 'infrastructure' | 'threat' | 'person' | 'advanced';
+export type GraphNodeType = 'target' | 'ip' | 'dns' | 'geo' | 'port' | 'cve' | 'email' | 'domain' | 'infrastructure' | 'threat' | 'advanced';
 
 export interface GraphNode {
   id: string;

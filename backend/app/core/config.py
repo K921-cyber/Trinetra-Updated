@@ -26,11 +26,10 @@ class Settings(BaseSettings):
     # Plugin timeouts (seconds)
     plugin_timeout: int = 30
 
-    # API authentication
-    # Set API_KEY in .env to enable auth. Leave empty = open access (dev mode).
-    # When set, all /api/search and /api/watches endpoints require:
-    #   Authorization: Bearer <API_KEY>  OR  X-API-Key: <API_KEY>
-    api_key: str = ""
+    # Authentication settings
+    # Auth is always enabled. Users register via POST /api/auth/register
+    # and log in via POST /api/auth/login.
+    # First registered user becomes admin.
 
     # External API keys
     hibp_api_key: str = ""  # Have I Been Pwned v3 API key (set via HIBP_API_KEY env var)

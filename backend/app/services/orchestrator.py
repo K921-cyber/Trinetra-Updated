@@ -92,7 +92,6 @@ class OrchestratorService:
             "categories": {
                 "infrastructure": len(plugin_registry.get_by_category("infrastructure")),
                 "threat": len(plugin_registry.get_by_category("threat")),
-                "person": len(plugin_registry.get_by_category("person")),
                 "advanced": len(plugin_registry.get_by_category("advanced")),
             },
         }

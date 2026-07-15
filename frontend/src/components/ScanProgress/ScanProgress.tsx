@@ -13,11 +13,10 @@ export default function ScanProgress() {
   const progress = total > 0 ? ((completedCount + failedCount) / total) * 100 : 0;
 
   // Category breakdown from actual results
-  const categories: ToolCategory[] = ['infrastructure', 'threat', 'person', 'advanced'];
+  const categories: ToolCategory[] = ['infrastructure', 'threat', 'advanced'];
   const categoryLabels: Record<string, string> = {
     infrastructure: '🌐',
     threat: '🚨',
-    person: '👤',
     advanced: '🔍',
   };
 

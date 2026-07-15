@@ -1,40 +1,221 @@
 """
-TRINETRA — API Key Authentication
+TRINETRA — User Authentication with Registration
 
-FastAPI dependency that validates API keys on protected endpoints.
+Users register with username + email + password (stored in SQLite with
+hashed passwords). Login generates session tokens stored in memory.
 
-Behavior:
-    - If API_KEY env var is empty/unset: auth is DISABLED (dev mode, open access)
-    - If API_KEY env var is set: all protected endpoints require a valid key
+Usage:
+    POST /api/auth/register  { "username": "...", "email": "...", "password": "..." }
+    → { "success": true, "token": "...", "username": "..." }
 
-Accepted header formats:
-    Authorization: Bearer <api_key>
-    X-API-Key: <api_key>
-
-Uses constant-time comparison (hmac.compare_digest) to prevent timing attacks.
+    POST /api/auth/login  { "username": "...", "password": "..." }
+    → { "success": true, "token": "...", "username": "..." }
 """
 
-import hmac
+import secrets
+import hashlib
 import logging
-from fastapi import Request, HTTPException, WebSocket
+from fastapi import Request, HTTPException
 from app.core.config import settings
 
 logger = logging.getLogger("trinetra.auth")
 
+# In-memory store of valid session tokens: { token: username }
+_active_tokens: dict[str, str] = {}
+
+# ── Password hashing ──────────────────────────────────────
+
+
+def _hash_password(password: str) -> str:
+    """Hash a password with a random salt using SHA-256.
+    Returns format: "salt:hash"
+    """
+    salt = secrets.token_hex(16)
+    h = hashlib.sha256(f"{salt}:{password}".encode()).hexdigest()
+    return f"{salt}:{h}"
+
+
+def _verify_password(password: str, stored: str) -> bool:
+    """Verify a password against a stored hash."""
+    try:
+        salt, h = stored.split(":", 1)
+        return hashlib.sha256(f"{salt}:{password}".encode()).hexdigest() == h
+    except (ValueError, AttributeError):
+        return False
+
+
+# ── Database helpers — direct SQLite access ───────────────
+
+
+def _get_db():
+    """Get a synchronous SQLite connection (for auth operations).
+    We use sync SQLite here because FastAPI dependencies need to be
+    synchronous for the auth flow, and SQLite handles concurrent reads fine.
+    """
+    import sqlite3
+    import os
+
+    db_path = settings.database_url.removeprefix("sqlite+aiosqlite://")
+    if db_path.startswith("/"):
+        db_path = db_path[1:]
+    if not db_path:
+        return None
+
+    conn = sqlite3.connect(db_path, timeout=10)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout=10000")
+    return conn
+
+
+def init_users_table():
+    """Create the users table if it doesn't exist."""
+    conn = _get_db()
+    if not conn:
+        return False
+    try:
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                is_admin INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+        """)
+        conn.commit()
+        return True
+    except Exception as e:
+        logger.error("Failed to init users table: %s", e)
+        return False
+    finally:
+        conn.close()
+
+
+def create_user(username: str, email: str, password: str) -> tuple[bool, str]:
+    """Create a new user. Returns (success, message)."""
+    conn = _get_db()
+    if not conn:
+        return False, "Database not available"
+
+    try:
+        # Check if this is the first user (becomes admin)
+        cursor = conn.execute("SELECT COUNT(*) as count FROM users")
+        count = cursor.fetchone()["count"]
+        is_admin = 1 if count == 0 else 0
+
+        password_hash = _hash_password(password)
+        conn.execute(
+            "INSERT INTO users (username, email, password_hash, is_admin) VALUES (?, ?, ?, ?)",
+            (username, email, password_hash, is_admin),
+        )
+        conn.commit()
+        role = "admin" if is_admin else "user"
+        return True, role
+    except Exception as e:
+        err = str(e)
+        if "UNIQUE" in err:
+            if "username" in err.lower():
+                return False, "Username already taken"
+            if "email" in err.lower():
+                return False, "Email already registered"
+        return False, f"Registration failed: {err}"
+    finally:
+        conn.close()
+
+
+def get_user(username: str) -> dict | None:
+    """Get a user by username. Returns None if not found."""
+    conn = _get_db()
+    if not conn:
+        return None
+    try:
+        cursor = conn.execute(
+            "SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE username = ?",
+            (username,),
+        )
+        row = cursor.fetchone()
+        if row:
+            return dict(row)
+        return None
+    except Exception:
+        return None
+    finally:
+        conn.close()
+
+
+# ── Auth functions ────────────────────────────────────────
+
+
+def is_auth_enabled() -> bool:
+    """Auth is always enabled."""
+    return True
+
+
+def login(username: str, password: str) -> str | None:
+    """Validate credentials and generate a session token.
+
+    Returns the token string on success, or None on failure.
+    """
+    if not username or not password:
+        return None
+
+    user = get_user(username)
+    if not user:
+        return None
+
+    if not _verify_password(password, user["password_hash"]):
+        return None
+
+    # Generate a cryptographically random token
+    token = secrets.token_hex(32)
+    _active_tokens[token] = username
+    return token
+
+
+def logout_token(token: str) -> bool:
+    """Invalidate a session token. Returns True if it existed."""
+    if token in _active_tokens:
+        del _active_tokens[token]
+        return True
+    return False
+
+
+def validate_token(token: str | None) -> bool:
+    """Check if a session token is valid.
+
+    Returns True if the token is in the active tokens store.
+    """
+    if not token:
+        return False
+
+    return token in _active_tokens
+
+
+def get_username_for_token(token: str) -> str | None:
+    """Get the username associated with a token, or None."""
+    return _active_tokens.get(token)
+
+
+def clear_all_tokens():
+    """Clear all session tokens (used on server restart)."""
+    _active_tokens.clear()
+
+
+# ── Header extraction (kept from previous API key system) ─
+
 
 def _extract_key_from_headers(request: Request) -> str | None:
-    """Extract API key from request headers.
+    """Extract token from request headers.
 
     Supports:
-        - Authorization: Bearer <key>
-        - X-API-Key: <key>
+        - Authorization: Bearer <token>
+        - X-API-Key: <token>  (legacy name)
     """
-    # Check X-API-Key first (simpler for non-browser clients)
-    api_key = request.headers.get("x-api-key")
-    if api_key:
-        return api_key
+    token = request.headers.get("x-api-key")
+    if token:
+        return token
 
-    # Check Authorization: Bearer <key>
     auth_header = request.headers.get("authorization", "")
     if auth_header.lower().startswith("bearer "):
         return auth_header[7:].strip()
@@ -43,72 +224,37 @@ def _extract_key_from_headers(request: Request) -> str | None:
 
 
 def _extract_key_from_query(request: Request) -> str | None:
-    """Extract API key from query string (for WebSocket upgrade requests).
-
-    Supports: ?api_key=<key>
-    """
+    """Extract token from query string (for WebSocket upgrade requests)."""
     return request.query_params.get("api_key")
 
 
-def validate_api_key(provided: str | None) -> bool:
-    """Validate the provided API key against the configured key.
-
-    Returns True if auth is disabled (no key configured) or key matches.
-    Uses constant-time comparison to prevent timing attacks.
-    """
-    configured = settings.api_key
-
-    # Auth disabled — no key configured
-    if not configured:
-        return True
-
-    # No key provided
-    if not provided:
-        return False
-
-    if not isinstance(provided, str):
-        return False
-
-    # Constant-time comparison
-    return hmac.compare_digest(provided, configured)
+# ── FastAPI dependency ────────────────────────────────────
 
 
 async def require_api_key(request: Request) -> str | None:
     """FastAPI dependency for HTTP endpoints.
 
-    Raises 401 if API_KEY is configured and the request doesn't include a valid key.
-    Returns the key if valid, or None if auth is disabled.
+    Checks for a valid session token in headers.
+    Raises 401 if no valid token is provided.
     """
-    if not settings.api_key:
-        # Auth disabled — open access
-        return None
+    token = _extract_key_from_headers(request)
+    if token is None:
+        token = _extract_key_from_query(request)
 
-    key = _extract_key_from_headers(request)
-    if key is None:
-        key = _extract_key_from_query(request)
-
-    if not validate_api_key(key):
-        logger.warning(
-            "API key rejected from %s",
-            request.client.host if request.client else "unknown",
-        )
+    if not validate_token(token):
         raise HTTPException(
             status_code=401,
             detail={
                 "error": "Unauthorized",
-                "detail": "Valid API key required. "
-                "Provide via 'Authorization: Bearer <key>' header "
-                "or 'X-API-Key: <key>' header.",
+                "detail": "Valid session token required. "
+                "Register via POST /api/auth/register then "
+                "log in via POST /api/auth/login.",
             },
         )
 
-    return key
+    return token
 
 
 def validate_ws_message_key(data: dict) -> bool:
-    """Validate API key from the first WebSocket JSON message.
-
-    The client can send: {"api_key": "<key>", "target": "..."}
-    Returns True if valid or auth is disabled.
-    """
-    return validate_api_key(data.get("api_key"))
+    """Validate session token from the first WebSocket JSON message."""
+    return validate_token(data.get("api_key"))

@@ -8,7 +8,7 @@ to connected clients for the interactive map and ticker.
 import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.services.threat_feed import threat_feed
-from app.core.api_key_auth import validate_api_key
+from app.core.api_key_auth import validate_token, is_auth_enabled
 from app.core.config import settings
 
 router = APIRouter(tags=["threat-feed"])
@@ -28,8 +28,8 @@ async def websocket_threat_feed(websocket: WebSocket):
     """
     await websocket.accept()
 
-    # Auth: check query param for API key
-    if settings.api_key and not validate_api_key(websocket.query_params.get("api_key")):
+    # Auth: check query param for session token
+    if is_auth_enabled() and not validate_token(websocket.query_params.get("api_key")):
         try:
             await websocket.close(code=4001, reason="Unauthorized")
         except Exception:

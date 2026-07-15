@@ -79,12 +79,12 @@ export function useWebSocket(options: UseWebSocketOptions) {
       wsRef.current = null;
     }
 
-    // Include API key in query string for WebSocket auth
+    // Include auth token in query string for WebSocket auth
     let wsUrl = `${getWebSocketBase()}/ws/search`;
     try {
-      const apiKey = localStorage.getItem('trinetra_api_key');
-      if (apiKey) {
-        wsUrl += `?api_key=${encodeURIComponent(apiKey)}`;
+      const token = localStorage.getItem('trinetra_api_key');
+      if (token) {
+        wsUrl += `?api_key=${encodeURIComponent(token)}`;
       }
     } catch {
       // localStorage unavailable

@@ -104,7 +104,18 @@ export function useThreatFeed(options: UseThreatFeedOptions) {
     // Reconnect prevention is handled by onclose checking disconnectedRef.
     disconnectedRef.current = false;
 
-    const ws = new WebSocket(`${getWebSocketBase()}/ws/threats`);
+    // Include auth token in query string for WebSocket auth
+    let wsUrl = `${getWebSocketBase()}/ws/threats`;
+    try {
+      const token = localStorage.getItem('trinetra_api_key');
+      if (token) {
+        wsUrl += `?api_key=${encodeURIComponent(token)}`;
+      }
+    } catch {
+      // localStorage unavailable
+    }
+
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {

@@ -18,7 +18,6 @@ const nodeColors: Record<string, string> = {
   domain: '#f97316',
   infrastructure: '#06b6d4',
   threat: '#ef4444',
-  person: '#ec4899',
   advanced: '#8b5cf6',
 };
 
@@ -92,10 +91,6 @@ const styles: any[] = [
     style: { 'background-color': nodeColors.threat, 'border-color': '#f87171', 'shape': 'round-rectangle', 'width': 70, 'height': 35 },
   },
   {
-    selector: 'node[type="person"]',
-    style: { 'background-color': nodeColors.person, 'border-color': '#f472b6', 'shape': 'round-rectangle', 'width': 70, 'height': 35 },
-  },
-  {
     selector: 'node[type="advanced"]',
     style: { 'background-color': nodeColors.advanced, 'border-color': '#a78bfa', 'shape': 'round-rectangle', 'width': 70, 'height': 35 },
   },
@@ -161,11 +156,10 @@ function buildGraphFromResults(searchQuery: string, results: ToolResult[]): { no
   nodes.push({ id: targetId, label: searchQuery, type: 'target' });
 
   // Group results by category
-  const categories = ['infrastructure', 'threat', 'person', 'advanced'] as const;
+  const categories = ['infrastructure', 'threat', 'advanced'] as const;
   const categoryLabels: Record<string, string> = {
     infrastructure: 'Infrastructure',
     threat: 'Threat Intel',
-    person: 'Person Recon',
     advanced: 'Advanced',
   };
 
@@ -366,9 +360,6 @@ export default function GraphView() {
         </div>
         <div className="graph-legend-item">
           <div className="graph-legend-color" style={{ background: '#ef4444' }} /> Threat
-        </div>
-        <div className="graph-legend-item">
-          <div className="graph-legend-color" style={{ background: '#ec4899' }} /> Person
         </div>
         <div className="graph-legend-item">
           <div className="graph-legend-color" style={{ background: '#8b5cf6' }} /> Advanced

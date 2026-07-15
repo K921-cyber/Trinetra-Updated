@@ -1,6 +1,6 @@
 const API_BASE = '/api';
 
-/** Read API key from localStorage (set via settings or env) */
+/** Read auth token from localStorage */
 function getApiKey(): string | null {
   try {
     return localStorage.getItem('trinetra_api_key') || null;
@@ -9,7 +9,7 @@ function getApiKey(): string | null {
   }
 }
 
-/** Build default headers including API key if configured */
+/** Build default headers including auth token if stored */
 function buildHeaders(extra?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ interface WatchCreatePayload {
   email?: string;
 }
 
-/** Set or clear the API key in localStorage */
+/** Set or clear the auth token in localStorage */
 export function setApiKey(key: string | null) {
   try {
     if (key) {
@@ -117,7 +117,7 @@ export function setApiKey(key: string | null) {
   }
 }
 
-/** Get the currently stored API key */
+/** Get the currently stored auth token */
 export function getStoredApiKey(): string | null {
   return getApiKey();
 }

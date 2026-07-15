@@ -1,23 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../../store/AppContext';
 import { ToolPlugin, ToolCategory } from '../../types';
-import { GlobeIcon, AlertTriangleIcon, UserIcon, CrosshairIcon, ChevronRightIcon, ChevronDownIcon } from '../Icons/Icons';
+import { GlobeIcon, AlertTriangleIcon, CrosshairIcon, ChevronRightIcon, ChevronDownIcon } from '../Icons/Icons';
+import { api } from '../../utils/api';
 
 
 
-const CATEGORY_ORDER: ToolCategory[] = ['infrastructure', 'threat', 'person', 'advanced'];
+const CATEGORY_ORDER: ToolCategory[] = ['infrastructure', 'threat', 'advanced'];
 
 const CATEGORY_LABELS: Record<ToolCategory, string> = {
   infrastructure: 'Infrastructure',
   threat: 'Threat Intel',
-  person: 'Person Recon',
   advanced: 'Advanced Scan',
 };
 
 const CATEGORY_ICONS: Record<ToolCategory, React.ReactNode> = {
   infrastructure: <GlobeIcon size={13} />,
   threat: <AlertTriangleIcon size={13} />,
-  person: <UserIcon size={13} />,
   advanced: <CrosshairIcon size={13} />,
 };
 
@@ -27,13 +26,11 @@ export default function Sidebar() {
   const [plugins, setPlugins] = useState<ToolPlugin[]>([]);
   const [loadingPlugins, setLoadingPlugins] = useState(true);
 
-  // Fetch real plugin list from backend
+  // Fetch real plugin list from backend (uses auth headers via api module)
   useEffect(() => {
-    fetch('/api/plugins')
-      .then(res => res.ok ? res.json() : { plugins: [] })
+    api.listPlugins()
       .then(data => {
         if (data.plugins) {
-          // Map API response to ToolPlugin format
           const mapped: ToolPlugin[] = data.plugins.map((p: any) => ({
             id: p.id,
             name: p.name,

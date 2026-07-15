@@ -41,7 +41,6 @@ function formatTime(iso: string | undefined | null): string {
 const CATEGORY_ICONS: Record<string, string> = {
   infrastructure: '🖥',
   threat: '🛡',
-  person: '👤',
   advanced: '⚡',
 };
 
@@ -95,11 +94,10 @@ function PluginSelector({
     return acc;
   }, {});
 
-  const categoryOrder = ['infrastructure', 'threat', 'person', 'advanced'];
+  const categoryOrder = ['infrastructure', 'threat', 'advanced'];
   const categoryLabels: Record<string, string> = {
     infrastructure: 'Infrastructure',
     threat: 'Threat Intel',
-    person: 'Person',
     advanced: 'Advanced',
   };
 

@@ -70,7 +70,7 @@ class OSINTPlugin(ABC):
     # Override in subclasses
     plugin_id: str = ""
     name: str = ""
-    category: str = "infrastructure"  # infrastructure, threat, person, advanced
+    category: str = "infrastructure"  # infrastructure, threat, advanced
     description: str = ""
     input_types: list[str] = ["domain"]  # domain, ip, email, phone, username, name
     icon: str = "🔌"

@@ -35,6 +35,9 @@ async def lifespan(app: FastAPI):
     
     # Create DB tables if they don't exist (PostgreSQL init.sql handles this via Docker)
     _ensure_db_tables()
+    # Init users table for registration auth
+    from app.core.api_key_auth import init_users_table
+    init_users_table()
     
     # Start background watch scheduler
     start_scheduler()
@@ -59,7 +62,7 @@ async def lifespan(app: FastAPI):
         "  Categories: Infrastructure (%d), Threat (%d), Person (%d), Advanced (%d)",
         len(plugin_registry.get_by_category('infrastructure')),
         len(plugin_registry.get_by_category('threat')),
-        len(plugin_registry.get_by_category('person')),
+
         len(plugin_registry.get_by_category('advanced')),
     )
     logger.info("  Watch scheduler: running")
@@ -138,7 +141,6 @@ async def health():
         "categories": {
             "infrastructure": len(plugin_registry.get_by_category("infrastructure")),
             "threat": len(plugin_registry.get_by_category("threat")),
-            "person": len(plugin_registry.get_by_category("person")),
             "advanced": len(plugin_registry.get_by_category("advanced")),
         },
     }

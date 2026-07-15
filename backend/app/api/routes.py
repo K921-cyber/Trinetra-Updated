@@ -7,12 +7,130 @@ from app.models.schemas import SearchRequest, SearchResponse, PluginResultData
 from app.services.orchestrator import OrchestratorService
 from app.core.detector import AutoDetect
 from app.core.sanitizer import sanitize_target, validate_target, InputValidationError
-from app.core.api_key_auth import require_api_key
+from app.core.api_key_auth import require_api_key, login, logout_token, is_auth_enabled, validate_token, create_user
+from app.core.config import settings
+import re
 
 logger = logging.getLogger("trinetra.target_intel")
 
 router = APIRouter(prefix="/api", tags=["search"])
 orchestrator = OrchestratorService()
+
+
+@router.get("/auth/status")
+async def auth_status():
+    """Check authentication status and app info.
+
+    This endpoint is intentionally unauthenticated so the login page
+    can determine whether auth is needed.
+    Auth is always enabled. Registration is open.
+    """
+    return {
+        "auth_enabled": is_auth_enabled(),
+        "registration_open": True,
+        "app_name": settings.app_name,
+        "version": settings.version,
+    }
+
+
+@router.post("/auth/register")
+async def auth_register(body: dict):
+    """Register a new user account.
+
+    Accepts: {"username": "...", "email": "...", "password": "..."}
+    Returns a session token on success, or an error on failure.
+    The first registered user becomes admin.
+    This endpoint is intentionally unauthenticated.
+    """
+    username = body.get("username", "")
+    email = body.get("email", "")
+    password = body.get("password", "")
+
+    # Validate input
+    if not username or len(username) < 3:
+        return {"success": False, "error": "Username must be at least 3 characters.", "auth_enabled": True}
+    if not email or "@" not in email:
+        return {"success": False, "error": "Valid email address is required.", "auth_enabled": True}
+    if not password or len(password) < 6:
+        return {"success": False, "error": "Password must be at least 6 characters.", "auth_enabled": True}
+    if not re.match(r'^[a-zA-Z0-9_-]+$', username):
+        return {"success": False, "error": "Username can only contain letters, numbers, underscores, and hyphens.", "auth_enabled": True}
+
+    success, result = create_user(username, email, password)
+    if success:
+        # Auto-login after registration
+        token = login(username, password)
+        role = result  # "admin" or "user"
+        return {
+            "success": True,
+            "token": token,
+            "username": username,
+            "role": role,
+            "auth_enabled": True,
+            "message": f"Account created! You are logged in as {role}.",
+        }
+
+    return {
+        "success": False,
+        "error": result,
+        "auth_enabled": True,
+    }
+
+
+@router.post("/auth/login")
+async def auth_login(body: dict):
+    """Log in with username and password.
+
+    Accepts: {"username": "...", "password": "..."}
+    Returns a session token on success, or an error on failure.
+    This endpoint is intentionally unauthenticated.
+    """
+    username = body.get("username", "")
+    password = body.get("password", "")
+
+    token = login(username, password)
+    if token:
+        return {
+            "success": True,
+            "token": token,
+            "username": username,
+            "auth_enabled": True,
+        }
+
+    return {
+        "success": False,
+        "error": "Invalid username or password.",
+        "auth_enabled": True,
+    }
+
+
+@router.post("/auth/verify")
+async def auth_verify(body: dict):
+    """Check if a session token is still valid.
+
+    Accepts: {"token": "..."}
+    Used by the frontend on reload to verify the stored session.
+    """
+    token = body.get("token", "")
+    if not is_auth_enabled():
+        return {"valid": False, "auth_enabled": False}
+    return {
+        "valid": validate_token(token),
+        "auth_enabled": True,
+    }
+
+
+@router.post("/auth/logout")
+async def auth_logout(_key: str = Depends(require_api_key)):
+    """Log out and invalidate the current session token.
+
+    Requires a valid session token (the one to invalidate).
+    After calling this, the token can no longer be used.
+    """
+    token = _key
+    if token and logout_token(token):
+        return {"success": True, "message": "Logged out successfully."}
+    return {"success": True, "message": "Session already expired."}
 
 
 @router.get("/target-intel")

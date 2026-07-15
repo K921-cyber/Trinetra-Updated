@@ -3,8 +3,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.services.orchestrator import OrchestratorService
 from app.core.detector import AutoDetect
 from app.core.sanitizer import sanitize_target, InputValidationError
-from app.core.api_key_auth import validate_ws_message_key
-from app.core.config import settings
+from app.core.api_key_auth import validate_token, is_auth_enabled
 
 logger = logging.getLogger("trinetra.ws")
 
@@ -34,10 +33,10 @@ async def websocket_search(websocket: WebSocket):
         # Always receive the first message (contains target + optional api_key)
         data = await websocket.receive_json()
 
-        # Authenticate if API_KEY is configured
-        if settings.api_key and not validate_ws_message_key(data):
+        # Authenticate: check query params for token (client sends via ?api_key=)
+        if is_auth_enabled() and not validate_token(websocket.query_params.get("api_key")):
             await websocket.send_json(
-                {"type": "error", "message": "Unauthorized: valid API key required"}
+                {"type": "error", "message": "Unauthorized: valid session token required. Sign in first."}
             )
             await websocket.close(code=4001, reason="Unauthorized")
             return
