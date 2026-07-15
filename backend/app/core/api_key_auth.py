@@ -15,13 +15,17 @@ Usage:
 import secrets
 import hashlib
 import logging
+import os
 from fastapi import Request, HTTPException
-from app.core.config import settings
 
 logger = logging.getLogger("trinetra.auth")
 
 # In-memory store of valid session tokens: { token: username }
 _active_tokens: dict[str, str] = {}
+
+# Dedicated SQLite database for auth (works regardless of main DATABASE_URL)
+# File is created in the app working directory (current dir or /app in Docker)
+_AUTH_DB_PATH = os.environ.get("AUTH_DB_PATH", "trinetra_auth.db")
 
 # ── Password hashing ──────────────────────────────────────
 
@@ -48,22 +52,15 @@ def _verify_password(password: str, stored: str) -> bool:
 
 
 def _get_db():
-    """Get a synchronous SQLite connection (for auth operations).
-    We use sync SQLite here because FastAPI dependencies need to be
-    synchronous for the auth flow, and SQLite handles concurrent reads fine.
+    """Get a synchronous SQLite connection for auth operations.
+    Uses a dedicated auth database file independent of the main DATABASE_URL.
     """
     import sqlite3
-    import os
 
-    db_path = settings.database_url.removeprefix("sqlite+aiosqlite://")
-    if db_path.startswith("/"):
-        db_path = db_path[1:]
-    if not db_path:
-        return None
-
-    conn = sqlite3.connect(db_path, timeout=10)
+    conn = sqlite3.connect(_AUTH_DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA busy_timeout=10000")
+    conn.execute("PRAGMA journal_mode=WAL")
     return conn
 
 

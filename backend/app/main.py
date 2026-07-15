@@ -59,10 +59,9 @@ async def lifespan(app: FastAPI):
     
     logger.info("TRINETRA initialized - %d OSINT plugins registered", plugin_registry.count)
     logger.info(
-        "  Categories: Infrastructure (%d), Threat (%d), Person (%d), Advanced (%d)",
+        "  Categories: Infrastructure (%d), Threat (%d), Advanced (%d)",
         len(plugin_registry.get_by_category('infrastructure')),
         len(plugin_registry.get_by_category('threat')),
-
         len(plugin_registry.get_by_category('advanced')),
     )
     logger.info("  Watch scheduler: running")

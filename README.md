@@ -13,8 +13,9 @@
     <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React 18"/>
     <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"/>
     <img src="https://img.shields.io/badge/TypeScript-5.6-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 5.6"/>
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"/>
+    <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
     <img src="https://img.shields.io/badge/Leaflet-1.9-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet 1.9"/>
-    <img src="https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white" alt="SQLite"/>
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"/>
   </p>
   <br/>
@@ -27,6 +28,7 @@
 <br/>
 
 <p align="center">
+  <b>🐳 Docker Ready</b>&nbsp;&nbsp;·&nbsp;&nbsp;
   <b>🔍 OSINT Search</b>&nbsp;&nbsp;·&nbsp;&nbsp;
   <b>🗺️ Live Threat Map</b>&nbsp;&nbsp;·&nbsp;&nbsp;
   <b>📡 Real-Time Feed</b>&nbsp;&nbsp;·&nbsp;&nbsp;
@@ -42,8 +44,8 @@
 
 ## 📋 Table of Contents
 
-- [⚡ Quick Start](#-quick-start)
-- [🛠️ Manual Installation](#️-manual-installation)
+- [⚡ Quick Start (Docker)](#-quick-start-docker)
+- [🛠️ Manual Installation (No Docker)](#️-manual-installation-no-docker)
 - [🎯 What TRINETRA Does](#-what-trinetra-does)
 - [🏗️ Architecture & Workflow](#️-architecture--workflow)
 - [🔍 OSINT Search — How It Works](#-osint-search--how-it-works)
@@ -63,41 +65,91 @@
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Quick Start (Docker)
 
-### Without Docker (Development)
+### Prerequisites
 
-**Terminal 1 — Backend:**
+- [Docker](https://docs.docker.com/get-docker/) (version 24+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (included with Docker Desktop)
+
+### Setup
+
 ```bash
-cd backend
-python -m venv venv
-# Windows: venv\Scripts\activate
-# Linux/Mac: source venv/bin/activate
-pip install -r requirements.txt
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
+# Clone the repository
+git clone https://github.com/your-org/trinetra.git
+cd trinetra
+
+# (Optional) Copy and customize environment variables
+cp .env.example .env
+# Edit .env — at minimum set POSTGRES_PASSWORD
+
+# Start all services (project name: indra2)
+docker compose -p indra2 up -d
 ```
 
-**Terminal 2 — Frontend:**
-```bash
-cd frontend
-npm install
-npx vite --host 0.0.0.0 --port 3000
+### Access Points
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Frontend** | [http://localhost:3000](http://localhost:3000) | React dashboard — register & start searching |
+| **Backend API** | [http://localhost:8000](http://localhost:8000) | FastAPI REST API |
+| **API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) | Interactive Swagger documentation |
+| **PostgreSQL** | `localhost:5432` | Main database (auth uses dedicated SQLite) |
+| **Redis** | `localhost:6380` | Cache & TaskIQ broker |
+
+### First-Time Steps
+
+1. Open [http://localhost:3000](http://localhost:3000)
+2. Click **Register** and create an account (first user becomes admin)
+3. Start searching domains, IPs, emails, phones, or names
+
+### Container Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   Docker Compose (indra2)              │
+│                                                        │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────┐  │
+│  │ Frontend │  │ Backend  │  │ Worker   │  │ DB   │  │
+│  │ :3000→80 │  │ :8000    │  │ (TaskIQ) │  │:5432 │  │
+│  │  React   │  │ FastAPI  │  │  Async   │  │ PG15 │  │
+│  │  Nginx   │  │ Uvicorn  │  │  Tasks   │  │      │  │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └──┬───┘  │
+│       └─────────────┴─────────────┴────────────┘      │
+│                         │                             │
+│                    ┌────▼─────┐                       │
+│                    │  Redis   │                       │
+│                    │  :6380   │                       │
+│                    │  Cache   │                       │
+│                    └──────────┘                       │
+└──────────────────────────────────────────────────────┘
 ```
 
-**Terminal 3 — TaskIQ Worker (optional, for watch monitoring):**
-```bash
-cd backend
-source venv/bin/activate
-taskiq worker app.tasks.broker:broker app.tasks.watch_tasks
-```
+### Useful Docker Commands
 
-Then open **http://localhost:3000** — register a new account and start searching.
+```bash
+# View container logs
+docker compose -p indra2 logs -f backend    # Backend logs
+docker compose -p indra2 logs -f frontend   # Frontend logs
+
+# Restart a service
+docker compose -p indra2 restart backend
+
+# Rebuild after code changes
+docker compose -p indra2 build backend
+
+# Stop everything
+docker compose -p indra2 down
+
+# Stop and delete volumes (wipes database)
+docker compose -p indra2 down -v
+```
 
 <br/>
 
 ---
 
-## 🛠️ Manual Installation
+## 🛠️ Manual Installation (No Docker)
 
 ### Prerequisites
 
@@ -124,7 +176,7 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
 ```
 
-The database (`trinetra.db`) and users table are created automatically on first startup. No `.env` file is required — the first user to register becomes an admin.
+The database (`trinetra.db`) and users table are created automatically on first startup. The first user to register becomes an admin.
 
 ### Frontend Setup
 
@@ -134,21 +186,17 @@ npm install
 npx vite --host 0.0.0.0 --port 3000
 ```
 
-### Environment Variables (Optional)
+### TaskIQ Worker (Optional — for Watch Monitoring)
 
-All configuration can be done via environment variables or a `.env` file in the `backend/` directory:
+```bash
+cd backend
+source venv/bin/activate
+taskiq worker app.tasks.broker:broker app.tasks.watch_tasks
+```
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `APP_NAME` | `TRINETRA OSINT API` | Application display name |
-| `DEBUG` | `false` | Enable debug mode |
-| `DATABASE_URL` | `sqlite+aiosqlite:///./trinetra.db` | Database connection string |
-| `CORS_ORIGINS` | `["http://localhost:3000","http://localhost:5173"]` | Allowed CORS origins |
-| `PLUGIN_TIMEOUT` | `30` | Per-plugin timeout in seconds |
-| `HIBP_API_KEY` | `""` | Have I Been Pwned API key |
-| `TELEGRAM_BOT_TOKEN` | `""` | Telegram Bot token |
-| `TELEGRAM_OSINT_API_URL` | `""` | OSINT Leak API base URL |
-| `TELEGRAM_OSINT_API_KEY` | `""` | API key for OSINT API |
+Then open **http://localhost:3000** — register a new account and start searching.
+
+> **Note on ports:** In manual mode the backend runs on port **8003**. In Docker mode it runs on port **8000**. All API examples in this README use port **8000** for Docker. For manual mode, replace `8000` with `8003`.
 
 <br/>
 
@@ -205,7 +253,8 @@ Investigating a single domain typically means juggling **multiple separate tools
                                   HTTP       WebSocket
                                     │            │
                     ┌───────────────▼────────────▼─────────────┐
-                    │         FastAPI Backend (port 8003)       │
+                    │         FastAPI Backend                   │
+                    │         (port 8000 Docker / 8003 Manual)  │
                     │                                          │
                     │  ┌──────────┐  ┌────────────────────┐    │
                     │  │ REST API │  │ WebSocket Streaming│    │
@@ -243,7 +292,9 @@ Investigating a single domain typically means juggling **multiple separate tools
 | **Mapping** | Leaflet + react-leaflet | India threat map with animated attack vectors |
 | **Graphs** | Cytoscape + cytoscape-dagre | Relationship visualization from scan results |
 | **Backend** | FastAPI + Python 3.11 | REST API + WebSocket server |
-| **Database** | SQLite / PostgreSQL | Persistent storage (users, watches, alerts, scan results) |
+| **Database** | PostgreSQL 15 (Docker) / SQLite (manual) | Main data storage |
+| **Auth DB** | SQLite (dedicated `trinetra_auth.db`) | User accounts, sessions — independent of main DB |
+| **Cache** | Redis 7 (Docker) | TaskIQ broker, caching |
 | **Worker** | TaskIQ | Background watch task execution |
 | **Data** | httpx + feedparser | External API calls + RSS parsing |
 | **Bot** | python-telegram-bot | Telegram OSINT leak search (optional) |
@@ -421,6 +472,15 @@ TRINETRA uses a **username/password registration system** with session tokens.
 5. **Session tokens** — Stored in `localStorage`, verified on page reload
 6. **Token expiry** — Tokens are valid until server restart or logout
 
+### Auth Database
+
+User accounts are stored in a **dedicated SQLite file** (`trinetra_auth.db`) that is independent of the main database connection. This means:
+
+- In **Docker mode** (PostgreSQL): auth still uses SQLite — no extra setup needed
+- In **manual mode** (SQLite): auth shares the SQLite approach
+- The auth DB file is created automatically on first startup
+- Set `AUTH_DB_PATH` env var to customize the location
+
 ### API Endpoints
 
 | Method | Endpoint | Description |
@@ -555,6 +615,15 @@ All data in TRINETRA is **real** — no simulated or placeholder data.
 - First user becomes admin
 - Session tokens stored in localStorage
 - All API endpoints require authentication
+- Dedicated SQLite auth database (works with both SQLite and PostgreSQL modes)
+
+### 🐳 Docker Deployment
+
+- Fully containerized: PostgreSQL 15, Redis 7, FastAPI, React/Nginx
+- Docker Compose with health checks and dependency ordering
+- Dev mode with hot-reload via bind mounts
+- TaskIQ worker for background watch tasks
+- Non-root container security (all services run as unprivileged users)
 
 ### 🛡️ India-Specific Intelligence
 
@@ -636,23 +705,25 @@ Client → Server:  {"action": "pause"} | {"action": "resume"} | {"action": "sto
 
 ### API Examples
 
+> **Note:** These examples use port **8000** (Docker mode). For manual mode, replace with port **8003**.
+
 **Register a user:**
 ```bash
-curl -X POST http://localhost:8003/api/auth/register \
+curl -X POST http://localhost:8000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "email": "admin@example.com", "password": "securepass123"}'
 ```
 
 **Login:**
 ```bash
-curl -X POST http://localhost:8003/api/auth/login \
+curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "securepass123"}'
 ```
 
 **Run a search (with auth token):**
 ```bash
-curl -X POST http://localhost:8003/api/search \
+curl -X POST http://localhost:8000/api/search \
   -H "Content-Type: application/json" \
   -H "X-API-Key: <your_session_token>" \
   -d '{"target": "example.com"}'
@@ -660,7 +731,7 @@ curl -X POST http://localhost:8003/api/search \
 
 **List plugins:**
 ```bash
-curl -H "X-API-Key: <token>" http://localhost:8003/api/plugins
+curl -H "X-API-Key: <token>" http://localhost:8000/api/plugins
 ```
 
 <br/>
@@ -684,7 +755,7 @@ trinetra/
 │   │   │   ├── detector.py             # Auto-detect target type
 │   │   │   ├── sanitizer.py            # Input validation & sanitization
 │   │   │   ├── rate_limiter.py         # In-memory sliding window rate limiter
-│   │   │   └── api_key_auth.py         # User auth (register, login, tokens)
+│   │   │   └── api_key_auth.py         # User auth (register, login, tokens, dedicated SQLite DB)
 │   │   ├── data/
 │   │   │   └── ncrb_crime_data.py      # NCRB 2022 cyber crime statistics
 │   │   ├── models/
@@ -692,25 +763,31 @@ trinetra/
 │   │   ├── plugins/                    # 15 OSINT plugins (auto-discovered)
 │   │   │   ├── base.py                 # Abstract base class (OSINTPlugin)
 │   │   │   ├── registry.py             # Auto-discovery plugin registry
-│   │   │   ├── infrastructure/         # 8 plugins
-│   │   │   ├── threat/                 # 4 plugins
-│   │   │   └── advanced/               # 3 plugins
+│   │   │   ├── infrastructure/         # 8 plugins (domain, DNS, ports, SSL, subdomains, geo, headers, tech)
+│   │   │   ├── threat/                 # 4 plugins (CVE, data leaks, document vault, OSINT leak)
+│   │   │   └── advanced/               # 3 plugins (deep search, live feed, surface scan)
 │   │   ├── services/
 │   │   │   ├── orchestrator.py         # Plugin orchestrator (parallel execution)
 │   │   │   ├── threat_feed.py          # Live threat feed broadcaster
-│   │   │   ├── real_threat_service.py  # Real malicious IP fetcher
-│   │   │   ├── real_news_service.py    # Real RSS news fetcher
+│   │   │   ├── real_threat_service.py  # Real malicious IP fetcher (ThreatFox, Feodo, IPsum)
+│   │   │   ├── real_news_service.py    # Real RSS news fetcher (4 feeds)
 │   │   │   ├── watch_service.py        # Watch CRUD + alert service
 │   │   │   ├── database.py             # Async SQLAlchemy (SQLite/PostgreSQL)
 │   │   │   └── telegram_bot.py         # Telegram OSINT bot (optional)
 │   │   ├── tasks/
-│   │   │   ├── broker.py               # TaskIQ broker
+│   │   │   ├── broker.py               # TaskIQ broker (Redis-backed)
 │   │   │   ├── scheduler.py            # Watch scheduler
 │   │   │   └── watch_tasks.py          # Watch scan + change detection
 │   │   └── main.py                     # FastAPI app factory + lifespan
 │   ├── tests/
-│   ├── Dockerfile
-│   ├── init.sql
+│   │   ├── test_api_key_auth.py        # Auth unit tests
+│   │   ├── test_data_leaks.py          # Data leak plugin tests
+│   │   ├── test_watch_alerts.py        # Watch alert tests
+│   │   ├── test_watch_retry.py         # Watch retry logic tests
+│   │   ├── test_watch_routes.py        # Watch API route tests
+│   │   └── test_watch_service.py       # Watch service tests
+│   ├── Dockerfile                      # Multi-stage Python 3.11 build
+│   ├── init.sql                        # PostgreSQL initial schema
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
@@ -718,7 +795,7 @@ trinetra/
 │   │   │   ├── LoginPage/              # Auth login + register form
 │   │   │   ├── Map/IndiaMap.tsx        # Interactive India threat map
 │   │   │   ├── SearchBar/SearchBar.tsx # Auto-detect search input
-│   │   │   ├── ReportView/             # Plugin detail report
+│   │   │   ├── ReportView/             # Plugin detail report (GUI/Terminal/Split)
 │   │   │   ├── FullReportView/         # Full system intelligence report
 │   │   │   ├── LiveFeed/LiveFeed.tsx   # Real-time events page
 │   │   │   ├── WatchPanel/             # Watch management
@@ -728,6 +805,7 @@ trinetra/
 │   │   │   ├── DataSourcesPanel/       # Data source health
 │   │   │   ├── DashboardStats/         # Stats bar
 │   │   │   ├── ScanProgress/           # Scan progress indicator
+│   │   │   ├── Skeleton/               # Shimmer loading skeleton
 │   │   │   └── ToastNotification/      # Toast notifications
 │   │   ├── store/
 │   │   │   ├── AppContext.tsx           # Global app state
@@ -745,11 +823,12 @@ trinetra/
 │   │   ├── App.tsx                      # Root app component
 │   │   ├── main.tsx                     # React entry point
 │   │   └── styles.css                   # Complete dark-themed design system
-│   ├── Dockerfile
-│   ├── nginx.conf
+│   ├── Dockerfile                       # Multi-stage Node → Nginx build
+│   ├── nginx.conf                       # Nginx reverse proxy config
 │   └── package.json
-├── docker-compose.yml
-├── docker-compose.override.yml
+├── docker-compose.yml                   # Production compose (PostgreSQL, Redis, Backend, Worker, Frontend)
+├── docker-compose.override.yml          # Dev overrides (hot-reload bind mounts)
+├── .env.example                         # Environment variable template
 └── README.md
 ```
 
@@ -759,11 +838,14 @@ trinetra/
 
 ## ⚙️ Configuration Reference
 
+### Global Settings
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `APP_NAME` | `TRINETRA OSINT API` | Application display name |
 | `DEBUG` | `false` | Enable debug mode |
 | `DATABASE_URL` | `sqlite+aiosqlite:///./trinetra.db` | Database connection |
+| `AUTH_DB_PATH` | `trinetra_auth.db` | Path to dedicated SQLite auth database (auto-created) |
 | `CORS_ORIGINS` | `["http://localhost:3000","http://localhost:5173"]` | Allowed CORS origins |
 | `PLUGIN_TIMEOUT` | `30` | Per-plugin timeout in seconds |
 | `HIBP_API_KEY` | `""` | Have I Been Pwned API key |
@@ -776,7 +858,9 @@ trinetra/
 | URL Pattern | Backend | Best For |
 |-------------|---------|----------|
 | `sqlite+aiosqlite:///./trinetra.db` | SQLite | Development, single-user |
-| `postgresql+asyncpg://user:pass@host:5432/db` | PostgreSQL | Production, multi-user |
+| `postgresql+asyncpg://user:pass@host:5432/db` | PostgreSQL | Docker, production, multi-user |
+
+> **Note:** User authentication always uses a dedicated SQLite database (`trinetra_auth.db`) regardless of the main `DATABASE_URL` setting. This means auth works seamlessly in both SQLite and PostgreSQL modes.
 
 <br/>
 
@@ -823,15 +907,13 @@ class MyNewPlugin(OSINTPlugin):
 ### Development Setup
 
 ```bash
-# Backend
-cd backend
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --port 8003
+# Docker (recommended)
+docker compose -p indra2 up -d          # Full stack with hot-reload
+docker compose -p indra2 logs -f backend  # Watch backend logs
 
-# Frontend
-cd frontend
-npm install
-npx vite --host 0.0.0.0 --port 3000
+# Manual (no Docker)
+cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8003
+cd frontend && npm install && npx vite --host 0.0.0.0 --port 3000
 ```
 
 <br/>
